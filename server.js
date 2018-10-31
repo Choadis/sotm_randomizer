@@ -51,6 +51,15 @@ router.post('/hero', (req, res) => {
   });
 });
 
+router.get('/hero', (req, res) => {
+  Hero.find(function(err, heroes) {
+    if (err)
+    res.send(err);
+
+    res.json(heroes);
+  });
+});
+
 app.use('/api', router);
 
 // START THE SERVER
