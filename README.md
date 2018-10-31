@@ -60,13 +60,11 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags).
 
 ## Authors
 
-* **Stefen Dahlgren** - *Initial work* - [PurpleBooth](https://github.com/Choadis)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+* **Stefen Dahlgren** - *Initial work* - [Github](https://github.com/Choadis)
 
 ## License
 
@@ -74,7 +72,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
-
+* Special thanks to [Jim Feather](https://github.com/JimFeather) for helping me struggle through this
