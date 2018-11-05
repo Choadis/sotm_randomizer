@@ -21,8 +21,8 @@ var Villain     = require('./models/villain.js');
 var Environment     = require('./models/environment.js');
 var mongoose   = require('mongoose');
 
-mongoose.connect("mongodb://localhost:27017/sotm_db", { useNewUrlParser: true }); // connect to the database
-// mongoose.connect("mongodb://Choadis:Stan02042013@ds143953.mlab.com:43953/sotm_db", { useNewUrlParser: true }); // connect to the database
+// mongoose.connect("mongodb://localhost:27017/sotm_db", { useNewUrlParser: true }); // connect to the database
+mongoose.connect("mongodb://Choadis:Stan02042013@ds143953.mlab.com:43953/sotm_db", { useNewUrlParser: true }); // connect to the database
 
 var router = express.Router();              // get an instance of the express Router
 
@@ -37,7 +37,8 @@ router.post('/hero', (req, res) => {
 
   var newHero = new Hero({
     name: req.body.name,
-    type: req.body.type
+    type: req.body.type,
+    set: req.body.set
   });      // create a new instance of the hero model with the name set from the req
 
   console.log(newHero);
@@ -66,7 +67,8 @@ router.post('/villain', (req, res) => {
 
   var newVillain = new Villain({
     name: req.body.name,
-    type: req.body.type
+    type: req.body.type,
+    set: req.body.set
   });      // create a new instance of the villain model with the name set from the req
 
   console.log(newVillain);
@@ -94,7 +96,8 @@ router.post('/environment', (req, res) => {
 
   var newEnvironment = new Environment({
     name: req.body.name,
-    type: req.body.type
+    type: req.body.type,
+    set: req.body.set
   });
 
   console.log(newEnvironment);
