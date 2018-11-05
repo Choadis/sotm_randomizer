@@ -22,6 +22,7 @@ var Environment     = require('./models/environment.js');
 var mongoose   = require('mongoose');
 
 mongoose.connect("mongodb://localhost:27017/sotm_db", { useNewUrlParser: true }); // connect to the database
+// mongoose.connect("mongodb://Choadis:Stan02042013@ds143953.mlab.com:43953/sotm_db", { useNewUrlParser: true }); // connect to the database
 
 var router = express.Router();              // get an instance of the express Router
 
@@ -56,6 +57,7 @@ router.get('/hero', (req, res) => {
     if (err)
     res.send(err);
 
+    console.log('hit');
     res.json(heroes);
   });
 });
@@ -118,7 +120,7 @@ router.get('/environment', (req, res) => {
 
 app.get('/', (req, res) => {
 
-    res.render('index', {} );
+  res.render('index', {} );
 
 });
 
