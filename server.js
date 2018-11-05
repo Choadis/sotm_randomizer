@@ -1,7 +1,13 @@
 var express = require('express');        // call express
-var app = express();                 // define our app using express
+var app = express();                // define our app using express
 var bodyParser = require('body-parser');
 var path = require('path');
+var hbs = require('express-handlebars');
+
+// set up view engine
+app.engine('hbs', hbs({extname: 'hbs', defaultLayout: 'layout', layoutsDir: __dirname + '/views/layout'}));
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'hbs');
 
 // configure app to use bodyParser()
 // this will get the data from a POST
@@ -108,8 +114,42 @@ router.get('/environment', (req, res) => {
   });
 });
 
+// non api routes begin here
+
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname+'/views/index.html'));
+
+    res.render('index', {} );
+
+});
+
+app.get('/heroes', (req, res) => {
+
+  Hero.find({}, 'name -_id', function(err, heroes) {
+    if (err)
+    res.send(err);
+
+    res.render('deckRender', { title: "Heroes", array: heroes } );
+  });
+});
+
+app.get('/villains', (req, res) => {
+
+  Villain.find({}, 'name -_id', function(err, villains) {
+    if (err)
+    res.send(err);
+
+    res.render('deckRender', { title: "Villains", array: villains } );
+  });
+});
+
+app.get('/environments', (req, res) => {
+
+  Environment.find({}, 'name -_id', function(err, environments) {
+    if (err)
+    res.send(err);
+
+    res.render('deckRender', { title: "Environments", array: environments } );
+  });
 });
 
 app.use('/api', router);
