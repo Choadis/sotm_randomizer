@@ -4,6 +4,11 @@
     "dependencies": {
         "body-parser": "^1.18.3",
         "express": "^4.16.4",
-        "mongoose": "^5.3.8"
+        "express-handlebars": "^3.0.0",
+        "mongoose": "^5.3.8",
+        "mustache": "^3.0.0"
+    },
+    "engines": {
+      "node": "8.9.4"
     }
 }
