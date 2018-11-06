@@ -4,11 +4,13 @@ A tool to build a random collection of decks for the game Sentinels of the Multi
 
 ## Getting Started
 
+- Download the files from the repository
 - Run the server with `node server.js` to start application
 
 ### Installing
 
-- Install Node.js
+- Install [node.js](https://nodejs.org/en/)
+- Download the files from the repository
 - Install dependencies with `npm install`
 
 A step by step series of examples that tell you how to get a development env running
@@ -49,13 +51,14 @@ Give an example
 
 ## Deployment
 
-Add additional notes about how to deploy this on a live system
+- Project is already ready for live deploy on Heroku, check the documentation of whatever service you'd like to use to deploy for further information.
 
 ## Built With
 
 * [Node.js](https://nodejs.org/en/)
 * [Express](https://expressjs.com/)
 * [Mongoose](https://mongoosejs.com/)
+* [Handlebars](https://handlebarsjs.com/)
 
 ## Versioning
 
