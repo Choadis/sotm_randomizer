@@ -5,9 +5,10 @@
         "body-parser": "^1.18.3",
         "express": "^4.16.4",
         "express-handlebars": "^3.0.0",
-        "mongoose": "^5.3.8"
+        "mongoose": "^5.3.8",
+        "request": "^2.88.0"
     },
     "engines": {
-      "node": "8.9.4"
+        "node": "8.9.4"
     }
 }

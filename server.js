@@ -3,6 +3,7 @@ var app = express();                // define our app using express
 var bodyParser = require('body-parser');
 var path = require('path');
 var hbs = require('express-handlebars');
+var request = require("request");
 
 // set up view engine
 app.engine('hbs', hbs({extname: 'hbs', defaultLayout: 'layout', layoutsDir: __dirname + '/views/layout'}));
@@ -21,7 +22,6 @@ var Villain     = require('./models/villain.js');
 var Environment     = require('./models/environment.js');
 var mongoose   = require('mongoose');
 
-// mongoose.connect("mongodb://localhost:27017/sotm_db", { useNewUrlParser: true }); // connect to the database
 mongoose.connect("mongodb://Choadis:Stan02042013@ds143953.mlab.com:43953/sotm_db", { useNewUrlParser: true }); // connect to the database
 
 var router = express.Router();              // get an instance of the express Router
@@ -29,7 +29,7 @@ var router = express.Router();              // get an instance of the express Ro
 // middleware to use for all requests
 router.use((req, res, next) => {
   // do logging
-  // console.log('Something is happening.');
+  console.log('Something is happening.');
   next(); // make sure it goes to the next routes and doesn't stop here
 });
 
@@ -129,12 +129,20 @@ app.get('/', (req, res) => {
 
 app.get('/heroes', (req, res) => {
 
-  Hero.find({}, 'name -_id', function(err, heroes) {
-    if (err)
-    res.send(err);
+  var heroes = { method: 'GET',
+  url: 'http://localhost:3000/api/hero',
+  headers:
+   { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
+     'Cache-Control': 'no-cache',
+     'Content-Type': 'application/x-www-form-urlencoded' } };
 
-    res.render('deckRender', { title: "Heroes", array: heroes } );
-  });
+request(heroes, function (error, response, body) {
+  if (error) throw new Error(error);
+  console.log(typeof(body));
+
+  res.render('deckRender', { title: "Heroes", array: JSON.parse(body) } );
+});
+
 });
 
 app.get('/villains', (req, res) => {
@@ -156,6 +164,8 @@ app.get('/environments', (req, res) => {
     res.render('deckRender', { title: "Environments", array: environments } );
   });
 });
+
+// heroArray: heroes, villainArray: villains, envArray: environments
 
 app.use('/api', router);
 
