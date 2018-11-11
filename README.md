@@ -1,6 +1,6 @@
 # Project Title
 
-A tool to build a random collection of decks for the game Sentinels of the Multiverse. The entirety of the multiverse is a good bit to carry around, so I build this tool to make a selection of decks for me to pack up and take around to game nights, etc. I feel like this tool helps the modularity of the game shine by giving you the ability to create nigh endless scenarios and assortments of games.
+A tool to build a random collection of decks for the game Sentinels of the Multiverse. The entirety of the multiverse is a good bit to carry around, so I build this tool to make a selection of decks for me to pack up and take around to game nights, etc. I fell like this tool helps the modularity of the game shine by giving you the ability to create nigh endless scenarios and assortments of games.
 
 ## Getting Started
 
