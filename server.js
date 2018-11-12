@@ -132,53 +132,69 @@ router.get('/environment', (req, res) => {
 
 router.post('/user', (req, res) => {
 
-  bcrypt.hash(req.body.password, 10, (err, hash) => {
-    if (err) {
-      return res.status(500).json({
-        error: err
+  User.find({ email: req.body.email })
+  .exec()
+  .then(user => {
+    if (user.length >= 1){
+      return res.status(409).json({
+        message: "Email already exists"
       });
     } else {
-      var userData = new User ({
-        email: req.body.email,
-        username: req.body.username,
-        password: hash
+      bcrypt.hash(req.body.password, 10, (err, hash) => {
+        if (err) {
+          return res.status(500).json({
+            error: err
+          });
+        } else {
+          var userData = new User ({
+            email: req.body.email,
+            username: req.body.username,
+            password: hash
+          });
+          userData
+          .save()
+          .then((doc) => {
+            res.send(doc);
+            res.status(201).json({
+              message: "User created"
+            });
+          })
+          .catch(err => {
+            console.log(err);
+            res.status(500).json({
+              error: err
+            })
+          })
+        };
       });
-      userData
-      .save()
-      .then((doc) => {
-        console.log(doc);
-        res.status(201).json({
-          message: "User created"
-        });
-      })
-      .catch(err => {
-        console.log(err);
-        res.status(500).json({
-          error: err
-        })
-      })
-    };
+    }
+  })
+  .catch(err => {
+    console.log(err);
+    es.status(500).json({
+      error: err
+    });
   });
+
 });
 
-// router.get('/logout', (req, res, next) => {
-//
-//   if (req.session) {
-//     // delete session object
-//     req.session.destroy(function(err) {
-//       if(err) {
-//         return next(err);
-//       } else {
-//         return res.redirect('/');
-//       }
-//     });
-//   }
-//
-// });
+router.delete('/user/:userID', (req, res, next) => {
 
-// router.get('/sets/', (res, req) => {
-//
-// });
+  User.deleteOne({ _id: req.params.userID })
+  .exec()
+  .then(res => {
+    res.status(200).json({
+      message: "User deleted"
+    });
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({
+      error: err
+    });
+  });
+  
+});
 
 // non api routes begin here
 
