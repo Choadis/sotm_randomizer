@@ -182,8 +182,8 @@ router.delete('/user/:userID', (req, res, next) => {
 
   User.deleteOne({ _id: req.params.userID })
   .exec()
-  .then(res => {
-    res.status(200).json({
+  .then(result => {
+    res.status(200).json({ 
       message: "User deleted"
     });
   })
@@ -193,7 +193,7 @@ router.delete('/user/:userID', (req, res, next) => {
       error: err
     });
   });
-  
+
 });
 
 // non api routes begin here
