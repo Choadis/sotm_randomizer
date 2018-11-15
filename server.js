@@ -6,6 +6,19 @@ var hbs = require('express-handlebars');
 var request = require("request");
 var mongoose   = require('mongoose');
 var bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+var passport = require('passport');
+var flash    = require('connect-flash');
+
+var morgan       = require('morgan');
+var cookieParser = require('cookie-parser');
+var session      = require('express-session');
+
+app.use(express.static('public'));
+
+require('dotenv').config()
+// require('./config/passport')(passport); // pass passport for configuration
+
 
 // set up view engine
 app.engine('hbs', hbs({extname: 'hbs', defaultLayout: 'layout', layoutsDir: __dirname + '/views/layout'}));
@@ -16,15 +29,26 @@ app.set('view engine', 'hbs');
 // this will get the data from a POST
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(morgan('dev')); // log every request to the console
+app.use(cookieParser()); // read cookies (needed for auth)
 
 var port = process.env.PORT || 3000;
+var DB_USERNAME = process.env.DB_USERNAME;
+var DB_PW = process.env.DB_PW;
+var URL_VAR = process.env.URL_VAR
+
+// required for passport
+app.use(session({ secret: process.env.SESSION_SECRET })); // session secret
+app.use(passport.initialize());
+app.use(passport.session()); // persistent login sessions
+app.use(flash()); // use connect-flash for flash messages stored in session
 
 var Hero     = require('./models/hero.js');
 var Villain     = require('./models/villain.js');
 var Environment     = require('./models/environment.js');
 var User = require('./models/user.js');
 
-mongoose.connect("mongodb://Choadis:Stan02042013@ds143953.mlab.com:43953/sotm_db", { useNewUrlParser: true }); // connect to the database
+mongoose.connect(`mongodb://${DB_USERNAME}:${DB_PW}@ds143953.mlab.com:43953/sotm_db`, { useNewUrlParser: true }); // connect to the database
 
 var router = express.Router();  // get an instance of the express Router
 
@@ -36,13 +60,6 @@ router.use((req, res, next) => {
   // console.log('Something is happening.');
   next(); // make sure it goes to the next routes and doesn't stop here
 });
-
-//use sessions for tracking logins
-// app.use(session({
-//   secret: 'work hard',
-//   resave: true,
-//   saveUninitialized: false
-// }));
 
 // api routes go here
 
@@ -132,6 +149,8 @@ router.get('/environment', (req, res) => {
 
 router.post('/user', (req, res) => {
 
+  console.log(req.body);
+
   User.find({ email: req.body.email })
   .exec()
   .then(user => {
@@ -154,7 +173,6 @@ router.post('/user', (req, res) => {
           userData
           .save()
           .then((doc) => {
-            res.send(doc);
             res.status(201).json({
               message: "User created"
             });
@@ -171,7 +189,7 @@ router.post('/user', (req, res) => {
   })
   .catch(err => {
     console.log(err);
-    es.status(500).json({
+    res.status(500).json({
       error: err
     });
   });
@@ -213,9 +231,19 @@ router.post('/login', (req, res, next) => {
         })
       }
       if (result) {
+        const token = jwt.sign(
+          {
+            email: user.email,
+            username: user.username
+          },
+          process.env.JWT_KEY,
+          {
+              expiresIn: "1h"
+          });
         return res.status(200).json({
-          message: "Sucessful auth"
-        })
+          message: "Auth successful",
+          token: token
+        });
       }
       return res.status(401).json({
         message: "Auth failed"
@@ -242,7 +270,7 @@ app.get('/', (req, res) => {
 app.get('/heroes', (req, res) => {
 
   var heroes = { method: 'GET',
-  url: 'http://localhost:3000/api/hero',
+  url: `${process.env.URL_VAR}/api/hero`,
   headers:
   { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
   'Cache-Control': 'no-cache',
@@ -259,7 +287,7 @@ app.get('/heroes', (req, res) => {
 app.get('/villains', (req, res) => {
 
   var villains = { method: 'GET',
-  url: 'http://localhost:3000/api/villain',
+  url: `${process.env.URL_VAR}/api/villain`,
   headers:
   { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
   'Cache-Control': 'no-cache',
@@ -277,7 +305,7 @@ app.get('/villains', (req, res) => {
 app.get('/environments', (req, res) => {
 
   var environments = { method: 'GET',
-  url: 'http://localhost:3000/api/environment',
+  url: `${process.env.URL_VAR}/api/environment`,
   headers:
   { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
   'Cache-Control': 'no-cache',
@@ -294,11 +322,17 @@ app.get('/environments', (req, res) => {
 
 app.get('/signup', (req, res, next) => {
 
-  res.render('signup')
+  res.render('signup', { URL_VAR: URL_VAR })
 
 });
 
 app.get('/login', (req, res, next) => {
+
+  res.render('login')
+
+});
+
+app.post('/login', (req, res, next) => {
 
   res.render('login')
 
