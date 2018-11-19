@@ -12,13 +12,12 @@ var flash    = require('connect-flash');
 
 var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
-var session      = require('express-session');
+// var session      = require('express-session');
 
 app.use(express.static('public'));
 
 require('dotenv').config()
 // require('./config/passport')(passport); // pass passport for configuration
-
 
 // set up view engine
 app.engine('hbs', hbs({extname: 'hbs', defaultLayout: 'layout', layoutsDir: __dirname + '/views/layout'}));
@@ -30,18 +29,15 @@ app.set('view engine', 'hbs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(morgan('dev')); // log every request to the console
-app.use(cookieParser()); // read cookies (needed for auth)
 
 var port = process.env.PORT || 3000;
 var DB_USERNAME = process.env.DB_USERNAME;
 var DB_PW = process.env.DB_PW;
-var URL_VAR = process.env.URL_VAR
+var URL_VAR = process.env.URL_VAR;
+var JWT_KEY = process.env.JWT_KEY;
 
 // required for passport
-app.use(session({ secret: process.env.SESSION_SECRET })); // session secret
-app.use(passport.initialize());
-app.use(passport.session()); // persistent login sessions
-app.use(flash()); // use connect-flash for flash messages stored in session
+// app.use(session({ secret: process.env.SESSION_SECRET })); // session secret
 
 var Hero     = require('./models/hero.js');
 var Villain     = require('./models/villain.js');
@@ -236,107 +232,153 @@ router.post('/login', (req, res, next) => {
             email: user.email,
             username: user.username
           },
-          process.env.JWT_KEY,
+          JWT_KEY,
           {
-              expiresIn: "1h"
+            expiresIn: "1h"
           });
-        return res.status(200).json({
-          message: "Auth successful",
-          token: token
-        });
-      }
-      return res.status(401).json({
-        message: "Auth failed"
+          return res.status(200).json({
+            message: "Auth successful",
+            token: token
+          });
+        }
+        return res.status(401).json({
+          message: "Auth failed"
+        })
       })
     })
-  })
-  .catch(err => {
-    console.log(err);
-    res.status(500).json({
-      error: err
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({
+        error: err
+      });
     });
-  });
 
-});
+  });
 
 // non api routes begin here
 
 app.get('/', (req, res) => {
 
-  res.render('index', {} );
+    res.render('index', {} );
 
-});
+  });
 
 app.get('/heroes', (req, res) => {
 
-  var heroes = { method: 'GET',
-  url: `${process.env.URL_VAR}/api/hero`,
-  headers:
-  { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
-  'Cache-Control': 'no-cache',
-  'Content-Type': 'application/x-www-form-urlencoded' } };
+    var heroes = { method: 'GET',
+    url: `${URL_VAR}/api/hero`,
+    headers:
+    { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
+    'Cache-Control': 'no-cache',
+    'Content-Type': 'application/x-www-form-urlencoded' } };
 
-  request(heroes, function (error, response, body) {
-    if (error) throw new Error(error);
+    request(heroes, function (error, response, body) {
+      if (error) throw new Error(error);
 
-    res.render('deckRender', { title: "Heroes", array: JSON.parse(body) } );
+      res.render('deckRender', { title: "Heroes", array: JSON.parse(body) } );
+    });
+
   });
-
-});
 
 app.get('/villains', (req, res) => {
 
-  var villains = { method: 'GET',
-  url: `${process.env.URL_VAR}/api/villain`,
-  headers:
-  { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
-  'Cache-Control': 'no-cache',
-  'Content-Type': 'application/x-www-form-urlencoded' } };
+    var villains = { method: 'GET',
+    url: `${URL_VAR}/api/villain`,
+    headers:
+    { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
+    'Cache-Control': 'no-cache',
+    'Content-Type': 'application/x-www-form-urlencoded' } };
 
-  request(villains, function (error, response, body) {
-    if (error) throw new Error(error);
+    request(villains, function (error, response, body) {
+      if (error) throw new Error(error);
 
 
-    res.render('deckRender', { title: "Villains", array: JSON.parse(body) } );
+      res.render('deckRender', { title: "Villains", array: JSON.parse(body) } );
+    });
+
   });
-
-});
 
 app.get('/environments', (req, res) => {
 
-  var environments = { method: 'GET',
-  url: `${process.env.URL_VAR}/api/environment`,
-  headers:
-  { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
-  'Cache-Control': 'no-cache',
-  'Content-Type': 'application/x-www-form-urlencoded' } };
+    var environments = { method: 'GET',
+    url: `${URL_VAR}/api/environment`,
+    headers:
+    { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
+    'Cache-Control': 'no-cache',
+    'Content-Type': 'application/x-www-form-urlencoded' } };
 
-  request(environments, function (error, response, body) {
-    if (error) throw new Error(error);
+    request(environments, function (error, response, body) {
+      if (error) throw new Error(error);
 
 
-    res.render('deckRender', { title: "Environments", array: JSON.parse(body) } );
+      res.render('deckRender', { title: "Environments", array: JSON.parse(body) } );
+    });
+
   });
-
-});
 
 app.get('/signup', (req, res, next) => {
 
-  res.render('signup', { URL_VAR: URL_VAR })
+    res.render('signup', { URL_VAR: URL_VAR })
 
-});
+  });
 
 app.get('/login', (req, res, next) => {
 
-  res.render('login')
+    res.render('login')
 
-});
+  });
 
 app.post('/login', (req, res, next) => {
 
-  res.render('login')
+    res.render('login')
+
+  });
+
+app.get('/user/check', verifyToken, (req,res) => {
+
+  
 
 });
+
+// Verify Token function
+// =============================================================================
+function verifyToken(req, res, next) {
+
+  // Get auth header value
+  const bearerHeader = req.headers['authorization'];
+
+  // Check if bearer is undefined
+  if(typeof bearerHeader !== 'undefined') {
+
+    // console.log(bearerHeader);
+    const bearer = bearerHeader.split(' ');
+    const bearerToken = bearer[1];
+    req.token = bearerToken;
+
+    jwt.verify(req.token, JWT_KEY, (err, authData) => {
+
+      if(err) {
+        console.log(err);
+        res.sendStatus(403);
+      } else {
+        res.json({
+          message: "This worked",
+          authData
+        })
+      }
+    })
+
+    next();
+
+  } else {
+
+    // res.redirect('/login')
+    // console.log("Inside middleware");
+    res.sendStatus(403)
+
+  }
+
+}
 
 // START THE SERVER
 // =============================================================================
