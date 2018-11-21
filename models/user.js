@@ -5,6 +5,7 @@ var UserSchema = new mongoose.Schema({
     type: String,
     unique: true,
     required: true,
+    match: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
     trim: true
   },
   username: {

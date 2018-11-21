@@ -6,6 +6,16 @@ var hbs = require('express-handlebars');
 var request = require("request");
 var mongoose   = require('mongoose');
 var bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+var passport = require('passport');
+var flash    = require('connect-flash');
+
+var morgan       = require('morgan');
+var cookieParser = require('cookie-parser');
+
+app.use(express.static('public'));
+
+require('dotenv').config()
 
 // set up view engine
 app.engine('hbs', hbs({extname: 'hbs', defaultLayout: 'layout', layoutsDir: __dirname + '/views/layout'}));
@@ -16,33 +26,27 @@ app.set('view engine', 'hbs');
 // this will get the data from a POST
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(morgan('dev')); // log every request to the console
 
 var port = process.env.PORT || 3000;
+var DB_USERNAME = process.env.DB_USERNAME;
+var DB_PW = process.env.DB_PW;
+var URL_VAR = process.env.URL_VAR;
+var JWT_KEY = process.env.JWT_KEY;
+
+// required for passport
+// app.use(session({ secret: process.env.SESSION_SECRET })); // session secret
 
 var Hero     = require('./models/hero.js');
 var Villain     = require('./models/villain.js');
 var Environment     = require('./models/environment.js');
 var User = require('./models/user.js');
 
-mongoose.connect("mongodb://Choadis:Stan02042013@ds143953.mlab.com:43953/sotm_db", { useNewUrlParser: true }); // connect to the database
+mongoose.connect(`mongodb://${DB_USERNAME}:${DB_PW}@ds143953.mlab.com:43953/sotm_db`, { useNewUrlParser: true }); // connect to the database
 
 var router = express.Router();  // get an instance of the express Router
 
 app.use('/api', router);
-
-// middleware to use for all requests
-router.use((req, res, next) => {
-  // do logging
-  // console.log('Something is happening.');
-  next(); // make sure it goes to the next routes and doesn't stop here
-});
-
-//use sessions for tracking logins
-// app.use(session({
-//   secret: 'work hard',
-//   resave: true,
-//   saveUninitialized: false
-// }));
 
 // api routes go here
 
@@ -54,13 +58,13 @@ router.post('/hero', (req, res) => {
     set: req.body.set
   });      // create a new instance of the hero model with the name set from the req
 
-  console.log(newHero);
+  // console.log(newHero);
 
   // save the hero and check for errors
 
   newHero.save().then((doc) => {
     res.send(doc);
-    console.log('Hero created');
+    // console.log('Hero created');
   }, (e) => {
     res.status(400).send(e);
   });
@@ -82,13 +86,13 @@ router.post('/villain', (req, res) => {
     set: req.body.set
   });      // create a new instance of the villain model with the name set from the req
 
-  console.log(newVillain);
+  // console.log(newVillain);
 
   // save the villain and check for errors
 
   newVillain.save().then((doc) => {
     res.send(doc);
-    console.log('Villain created');
+    // console.log('Villain created');
   }, (e) => {
     res.status(400).send(e);
   });
@@ -111,11 +115,11 @@ router.post('/environment', (req, res) => {
     set: req.body.set
   });
 
-  console.log(newEnvironment);
+  // console.log(newEnvironment);
 
   newEnvironment.save().then((doc) => {
     res.send(doc);
-    console.log('Environment created');
+    // console.log('Environment created');
   }, (e) => {
     res.status(400).send(e);
   });
@@ -132,126 +136,244 @@ router.get('/environment', (req, res) => {
 
 router.post('/user', (req, res) => {
 
-  bcrypt.hash(req.body.password, 10, (err, hash) => {
-    if (err) {
-      return res.status(500).json({
-        error: err
+  // console.log(req.body);
+
+  User.find({ email: req.body.email })
+  .exec()
+  .then(user => {
+    if (user.length >= 1){
+      return res.status(409).json({
+        message: "Email already exists"
       });
     } else {
-      var userData = new User ({
-        email: req.body.email,
-        username: req.body.username,
-        password: hash
+      bcrypt.hash(req.body.password, 10, (err, hash) => {
+        if (err) {
+          return res.status(500).json({
+            error: err
+          });
+        } else {
+          var userData = new User ({
+            email: req.body.email,
+            username: req.body.username,
+            password: hash
+          });
+          userData
+          .save()
+          .then((doc) => {
+            res.status(201).json({
+              message: "User created"
+            });
+          })
+          .catch(err => {
+            console.log(err);
+            res.status(500).json({
+              error: err
+            })
+          })
+        };
       });
-      userData
-      .save()
-      .then((doc) => {
-        console.log(doc);
-        res.status(201).json({
-          message: "User created"
-        });
-      })
-      .catch(err => {
-        console.log(err);
-        res.status(500).json({
-          error: err
-        })
-      })
-    };
+    }
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({
+      error: err
+    });
   });
+
 });
 
-// router.get('/logout', (req, res, next) => {
-//
-//   if (req.session) {
-//     // delete session object
-//     req.session.destroy(function(err) {
-//       if(err) {
-//         return next(err);
-//       } else {
-//         return res.redirect('/');
-//       }
-//     });
-//   }
-//
-// });
+router.delete('/user/:userID', (req, res, next) => {
 
-// router.get('/sets/', (res, req) => {
-//
-// });
+  User.deleteOne({ _id: req.params.userID })
+  .exec()
+  .then(result => {
+    res.status(200).json({
+      message: "User deleted"
+    });
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({
+      error: err
+    });
+  });
+
+});
+
+router.post('/login', (req, res, next) => {
+
+  User.findOne( {email: req.body.email} )
+  .exec()
+  .then(user => {
+    if (user.length < 1){
+      return res.status(401).json({
+        message: "Authentication failed"
+      })
+    }
+    bcrypt.compare(req.body.password, user.password, (err, result) => {
+
+      if (err) {
+        return res.status(401).json({
+          message: "Auth failed"
+        })
+      } if (result) {
+        const token = jwt.sign({
+          email: user.email,
+          username: user.username
+        },
+          JWT_KEY,
+          {expiresIn: "1h"}
+        );
+
+          // res.set('authorization', `Bearer ${token}`)
+          res.cookie('authorization', token)
+
+          return res.status(200).json({
+            message: "Auth successful",
+            token: token
+          });
+        }
+        return res.status(401).json({
+          message: "Auth failed"
+        })
+      })
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({
+        error: err
+      });
+    });
+
+  });
 
 // non api routes begin here
 
 app.get('/', (req, res) => {
 
-  res.render('index', {} );
+  if(typeof messageOK !== 'undefined') {
+    res.render('index', { messageOK: messageOK});
+  } else {
+    res.render('index')
+  }
 
-});
+  });
 
 app.get('/heroes', (req, res) => {
 
-  var heroes = { method: 'GET',
-  url: 'http://localhost:3000/api/hero',
-  headers:
-  { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
-  'Cache-Control': 'no-cache',
-  'Content-Type': 'application/x-www-form-urlencoded' } };
+    var heroes = { method: 'GET',
+    url: `${URL_VAR}/api/hero`,
+    headers:
+    { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
+    'Cache-Control': 'no-cache',
+    'Content-Type': 'application/x-www-form-urlencoded' } };
 
-  request(heroes, function (error, response, body) {
-    if (error) throw new Error(error);
+    request(heroes, function (error, response, body) {
+      if (error) throw new Error(error);
 
-    res.render('deckRender', { title: "Heroes", array: JSON.parse(body) } );
+      res.render('deckRender', { title: "Heroes", array: JSON.parse(body) } );
+    });
+
   });
-
-});
 
 app.get('/villains', (req, res) => {
 
-  var villains = { method: 'GET',
-  url: 'http://localhost:3000/api/villain',
-  headers:
-  { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
-  'Cache-Control': 'no-cache',
-  'Content-Type': 'application/x-www-form-urlencoded' } };
+    var villains = { method: 'GET',
+    url: `${URL_VAR}/api/villain`,
+    headers:
+    { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
+    'Cache-Control': 'no-cache',
+    'Content-Type': 'application/x-www-form-urlencoded' } };
 
-  request(villains, function (error, response, body) {
-    if (error) throw new Error(error);
+    request(villains, function (error, response, body) {
+      if (error) throw new Error(error);
 
 
-    res.render('deckRender', { title: "Villains", array: JSON.parse(body) } );
+      res.render('deckRender', { title: "Villains", array: JSON.parse(body) } );
+    });
+
   });
-
-});
 
 app.get('/environments', (req, res) => {
 
-  var environments = { method: 'GET',
-  url: 'http://localhost:3000/api/environment',
-  headers:
-  { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
-  'Cache-Control': 'no-cache',
-  'Content-Type': 'application/x-www-form-urlencoded' } };
+    var environments = { method: 'GET',
+    url: `${URL_VAR}/api/environment`,
+    headers:
+    { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
+    'Cache-Control': 'no-cache',
+    'Content-Type': 'application/x-www-form-urlencoded' } };
 
-  request(environments, function (error, response, body) {
-    if (error) throw new Error(error);
+    request(environments, function (error, response, body) {
+      if (error) throw new Error(error);
 
 
-    res.render('deckRender', { title: "Environments", array: JSON.parse(body) } );
+      res.render('deckRender', { title: "Environments", array: JSON.parse(body) } );
+    });
+
   });
-
-});
 
 app.get('/signup', (req, res, next) => {
 
-  res.render('signup')
+    res.render('signup', { URL_VAR: URL_VAR })
 
-});
+  });
 
 app.get('/login', (req, res, next) => {
 
-  res.render('login')
+  if (typeof messageFail !== 'undefined') {
+    res.render('login', { messageFail: messageFail })
+  } else {
+    res.render('login')
+  }
+
+  });
+
+app.get('/user/check', verifyToken, (req,res) => {
+
+  if(typeof messageOK !== 'undefined') {
+    res.render('profile', { messageOK: messageOK, username: req.authData.username });
+  } else {
+    res.redirect('/login')
+  }
+  // res.render('success', { username: req.authData.username });
 
 });
+
+// Verify Token function
+// =============================================================================
+function verifyToken(req, res, next) {
+
+  // Get auth header value
+  const bearerHeader = req.headers.cookie;
+
+  // Check if bearer is undefined
+  if(typeof bearerHeader !== 'undefined') {
+
+    // parse out auth data from cookie
+    var bearer = bearerHeader.split('authorization=');
+    bearer = String(bearer[1].split(';'))
+    req.token = bearer;
+
+    jwt.verify(req.token, JWT_KEY, (err, authData) => {
+
+      if(err) {
+
+        res.sendStatus(403);
+      } else {
+        req.authData = authData;
+        messageOK = 'You\'re logged in now'
+        next();
+      }
+    })
+  } else {
+
+    messageFail = "I can\'t let you do that, Fox";
+    res.redirect('/login')
+
+  }
+
+}
 
 // START THE SERVER
 // =============================================================================
