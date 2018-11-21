@@ -33,8 +33,7 @@ $(document).ready(function() {
       url: `http://localhost:3000/api/login`,
       data: data,
       success: function(data) {
-        alert('You should be logged in now?')
-        window.location.replace(`http://localhost:3000/`);
+        window.location.replace(`http://localhost:3000/user/check`);
       }
     });
   });

@@ -11,6 +11,10 @@
 <script src="scripts.js"></script>
 <style>
 
+.alert{
+  width: 60%;
+}
+
 .card {
   background-color: #eee;
   width: 80%;
@@ -50,9 +54,13 @@ footer {
 </head>
 <body>
 
-{{#if message}}
-<div class="alert alert-danger">{{message}}</div>
-{{/if}}
+  {{#if messageFail}}
+  <div class="mx-auto alert alert-danger mb-5 p-3 text-center"> {{messageFail}} </div>
+  {{/if}}
+
+  {{#if messageOK}}
+  <div class="mx-auto alert alert-success mb-5 p-3 text-center"> {{messageOK}} </div>
+  {{/if}}
 
   {{{ body }}}
 

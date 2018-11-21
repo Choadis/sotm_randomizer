@@ -12,12 +12,10 @@ var flash    = require('connect-flash');
 
 var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
-// var session      = require('express-session');
 
 app.use(express.static('public'));
 
 require('dotenv').config()
-// require('./config/passport')(passport); // pass passport for configuration
 
 // set up view engine
 app.engine('hbs', hbs({extname: 'hbs', defaultLayout: 'layout', layoutsDir: __dirname + '/views/layout'}));
@@ -50,13 +48,6 @@ var router = express.Router();  // get an instance of the express Router
 
 app.use('/api', router);
 
-// middleware to use for all requests
-router.use((req, res, next) => {
-  // do logging
-  // console.log('Something is happening.');
-  next(); // make sure it goes to the next routes and doesn't stop here
-});
-
 // api routes go here
 
 router.post('/hero', (req, res) => {
@@ -67,13 +58,13 @@ router.post('/hero', (req, res) => {
     set: req.body.set
   });      // create a new instance of the hero model with the name set from the req
 
-  console.log(newHero);
+  // console.log(newHero);
 
   // save the hero and check for errors
 
   newHero.save().then((doc) => {
     res.send(doc);
-    console.log('Hero created');
+    // console.log('Hero created');
   }, (e) => {
     res.status(400).send(e);
   });
@@ -95,13 +86,13 @@ router.post('/villain', (req, res) => {
     set: req.body.set
   });      // create a new instance of the villain model with the name set from the req
 
-  console.log(newVillain);
+  // console.log(newVillain);
 
   // save the villain and check for errors
 
   newVillain.save().then((doc) => {
     res.send(doc);
-    console.log('Villain created');
+    // console.log('Villain created');
   }, (e) => {
     res.status(400).send(e);
   });
@@ -124,11 +115,11 @@ router.post('/environment', (req, res) => {
     set: req.body.set
   });
 
-  console.log(newEnvironment);
+  // console.log(newEnvironment);
 
   newEnvironment.save().then((doc) => {
     res.send(doc);
-    console.log('Environment created');
+    // console.log('Environment created');
   }, (e) => {
     res.status(400).send(e);
   });
@@ -145,7 +136,7 @@ router.get('/environment', (req, res) => {
 
 router.post('/user', (req, res) => {
 
-  console.log(req.body);
+  // console.log(req.body);
 
   User.find({ email: req.body.email })
   .exec()
@@ -221,21 +212,23 @@ router.post('/login', (req, res, next) => {
       })
     }
     bcrypt.compare(req.body.password, user.password, (err, result) => {
+
       if (err) {
         return res.status(401).json({
           message: "Auth failed"
         })
-      }
-      if (result) {
-        const token = jwt.sign(
-          {
-            email: user.email,
-            username: user.username
-          },
+      } if (result) {
+        const token = jwt.sign({
+          email: user.email,
+          username: user.username
+        },
           JWT_KEY,
-          {
-            expiresIn: "1h"
-          });
+          {expiresIn: "1h"}
+        );
+
+          // res.set('authorization', `Bearer ${token}`)
+          res.cookie('authorization', token)
+
           return res.status(200).json({
             message: "Auth successful",
             token: token
@@ -259,7 +252,11 @@ router.post('/login', (req, res, next) => {
 
 app.get('/', (req, res) => {
 
-    res.render('index', {} );
+  if(typeof messageOK !== 'undefined') {
+    res.render('index', { messageOK: messageOK});
+  } else {
+    res.render('index')
+  }
 
   });
 
@@ -324,19 +321,22 @@ app.get('/signup', (req, res, next) => {
 
 app.get('/login', (req, res, next) => {
 
+  if (typeof messageFail !== 'undefined') {
+    res.render('login', { messageFail: messageFail })
+  } else {
     res.render('login')
-
-  });
-
-app.post('/login', (req, res, next) => {
-
-    res.render('login')
+  }
 
   });
 
 app.get('/user/check', verifyToken, (req,res) => {
 
-  
+  if(typeof messageOK !== 'undefined') {
+    res.render('profile', { messageOK: messageOK, username: req.authData.username });
+  } else {
+    res.redirect('/login')
+  }
+  // res.render('success', { username: req.authData.username });
 
 });
 
@@ -345,36 +345,31 @@ app.get('/user/check', verifyToken, (req,res) => {
 function verifyToken(req, res, next) {
 
   // Get auth header value
-  const bearerHeader = req.headers['authorization'];
+  const bearerHeader = req.headers.cookie;
 
   // Check if bearer is undefined
   if(typeof bearerHeader !== 'undefined') {
 
-    // console.log(bearerHeader);
-    const bearer = bearerHeader.split(' ');
-    const bearerToken = bearer[1];
-    req.token = bearerToken;
+    // parse out auth data from cookie
+    var bearer = bearerHeader.split('authorization=');
+    bearer = String(bearer[1].split(';'))
+    req.token = bearer;
 
     jwt.verify(req.token, JWT_KEY, (err, authData) => {
 
       if(err) {
-        console.log(err);
+
         res.sendStatus(403);
       } else {
-        res.json({
-          message: "This worked",
-          authData
-        })
+        req.authData = authData;
+        messageOK = 'You\'re logged in now'
+        next();
       }
     })
-
-    next();
-
   } else {
 
-    // res.redirect('/login')
-    // console.log("Inside middleware");
-    res.sendStatus(403)
+    messageFail = "I can\'t let you do that, Fox";
+    res.redirect('/login')
 
   }
 
