@@ -1,9 +1,9 @@
 <div class="container">
     <div class="mx-3 card ml-5">
       <div class="card-body">
-      <p class="ml-5 card-title"> Which hero decks do you own? </p>
+      <p class="ml-5 card-title"> Which {{type}} decks do you own? </p>
       <div class="card-text">
-      <form id="heroForm" class="ml-5" action="/api/decksOwned" method="post">
+      <form id="deckForm" class="ml-5" action="/api/decksOwned" method="post">
         {{#each array}}
         <div class="radio">
           <label for="{{this.name}}">

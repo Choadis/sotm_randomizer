@@ -7,6 +7,7 @@ var request = require("request");
 var mongoose   = require('mongoose');
 var bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+var jwtDecode = require('jwt-decode');
 var passport = require('passport');
 var flash    = require('connect-flash');
 
@@ -14,6 +15,7 @@ var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
 
 app.use(express.static('public'));
+app.use(cookieParser())
 
 require('dotenv').config()
 
@@ -36,7 +38,7 @@ app.use(morgan('dev')); // log every request to the console
 var port = process.env.PORT || 3000;
 var DB_USERNAME = process.env.DB_USERNAME;
 var DB_PW = process.env.DB_PW;
-var URL_VAR = 'https://sotm-randomizer.herokuapp.com/';
+var URL_VAR = 'http://localhost:3000/';
 var JWT_KEY = process.env.JWT_KEY;
 
 var Hero     = require('./models/hero.js');
@@ -315,15 +317,18 @@ router.get('/allDecks', (req, res) => {
 // non api routes begin here
 // =============================================================================
 
-app.get('/', verifyToken, (req, res) => {
+app.get('/', (req, res) => {
 
-  username = req.authData.username
-  console.log(username);
+  cookieHeader = req.headers.cookie;
+  cookieSplit = cookieHeader.split('authorization=');
+  cookieSplit2 = String(cookieSplit[1].split(';'))
+  cookie = jwtDecode(cookieSplit2)
+  console.log(cookie['username']);
 
   if(req.authData === 'undefined') {
     res.render('index');
   } else {
-    res.render('index', { username: username})
+    res.render('index', { username: cookie['username']})
   }
 
 });
@@ -421,12 +426,12 @@ app.get('/:username/heroForm', verifyToken, (req, res) => {
   request(heroes, function (error, response, body) {
     if (error) throw new Error(error);
 
-    res.render('heroForm', { array: JSON.parse(body), username: req.authData.username } );
+    res.render('deckForm', { type: 'hero', array: JSON.parse(body), username: req.authData.username } );
   });
 
 });
 
-// Verify Token function
+// Middleware Functions go here
 // =============================================================================
 
 function verifyToken(req, res, next) {
@@ -457,6 +462,8 @@ function verifyToken(req, res, next) {
   }
 
 }
+
+
 
 // START THE SERVER
 // =============================================================================
