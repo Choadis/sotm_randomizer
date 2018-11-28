@@ -405,6 +405,8 @@ app.get('/:username/profile', verifyToken, (req,res) => {
 
   if(typeof messageOK !== 'undefined') {
     res.render('profile', { messageOK: messageOK, username: req.authData.username });
+  } if (req.authData.admin !== undefined && messageOK !== 'undefined') {
+    res.render('adminPage', { messageOK: messageOK, username: req.authData.username })
   } else {
     res.redirect('/login')
   }

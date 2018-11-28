@@ -16,8 +16,8 @@ $(document).ready(function() {
       url: URL_VAR + 'api/user',
       data: data,
       success: function(data) {
-        // alert('New User created~ Feel free to log in and view your profile page')
-        messageOK = 'New User created~ Feel free to log in and view your profile page'
+        alert('New User created~ Feel free to log in and view your profile page')
+        // messageOK = 'New User created~ Feel free to log in and view your profile page'
         window.location.replace(URL_VAR);
       }
     });
