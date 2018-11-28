@@ -1,6 +1,10 @@
+{{#if messageOK}}
+<div class="mx-auto alert alert-success mb-5 p-3 text-center"> {{messageOK}} </div>
+{{/if}}
+
 <div class="card">
   <div class="card-body">
     Profile for {{username}}
-    <a href="/{{username}}/decksForm" class="float-right"> Edit your decks </a>
+    <a href='/{{username}}/heroForm' class="float-right"> Edit your hero decks </a>
   </div>
 </div>
