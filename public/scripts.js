@@ -1,6 +1,6 @@
 $(document).ready(function() {
 
-  var URL_VAR = 'https://sotm-randomizer.herokuapp.com/';
+  var URL_VAR = 'http://localhost:3000/';
 
   $("#submitNewUser").click(function(event) {
 
