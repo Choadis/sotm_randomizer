@@ -38,7 +38,7 @@ app.use(morgan('dev')); // log every request to the console
 var port = process.env.PORT || 3000;
 var DB_USERNAME = process.env.DB_USERNAME;
 var DB_PW = process.env.DB_PW;
-var URL_VAR = 'http://localhost:3000/';
+var URL_VAR = 'https://sotm-randomizer.herokuapp.com/';
 var JWT_KEY = process.env.JWT_KEY;
 
 var Hero     = require('./models/hero.js');
@@ -461,8 +461,6 @@ function verifyToken(req, res, next) {
   }
 
 }
-
-
 
 // START THE SERVER
 // =============================================================================
