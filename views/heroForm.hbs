@@ -1,0 +1,20 @@
+<div class="container">
+    <div class="mx-3 card ml-5">
+      <div class="card-body">
+      <p class="ml-5 card-title"> Which hero decks do you own? </p>
+      <div class="card-text">
+      <form id="heroForm" class="ml-5" action="/api/decksOwned" method="post">
+        {{#each array}}
+        <div class="radio">
+          <label for="{{this.name}}">
+            <input type="radio" id="{{this.name}}">
+            {{this.name}}
+          </label>
+        </div>
+        {{/each}}
+        <button type="submit" id="submitDeckForm" class="rounded bg-primary p-2 px-3 text-white mt-5">Submit</button>
+      </form>
+      </div>
+      </div>
+    </div>
+</div>

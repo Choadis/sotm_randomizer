@@ -18,37 +18,47 @@ app.use(express.static('public'));
 require('dotenv').config()
 
 // set up view engine
+// =============================================================================
 app.engine('hbs', hbs({extname: 'hbs', defaultLayout: 'layout', layoutsDir: __dirname + '/views/layout'}));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
 // configure app to use bodyParser()
 // this will get the data from a POST
+// =============================================================================
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(morgan('dev')); // log every request to the console
 
+// variable configuration
+// =============================================================================
+
 var port = process.env.PORT || 3000;
 var DB_USERNAME = process.env.DB_USERNAME;
 var DB_PW = process.env.DB_PW;
-var URL_VAR = process.env.URL_VAR;
+var URL_VAR = 'https://sotm-randomizer.herokuapp.com/';
 var JWT_KEY = process.env.JWT_KEY;
-
-// required for passport
-// app.use(session({ secret: process.env.SESSION_SECRET })); // session secret
 
 var Hero     = require('./models/hero.js');
 var Villain     = require('./models/villain.js');
 var Environment     = require('./models/environment.js');
 var User = require('./models/user.js');
+var decksOwned = require('./models/decksOwned.js');
+
+// database connection
+// =============================================================================
 
 mongoose.connect(`mongodb://${DB_USERNAME}:${DB_PW}@ds143953.mlab.com:43953/sotm_db`, { useNewUrlParser: true }); // connect to the database
+
+// get instance of app and set router middleware
+// =============================================================================
 
 var router = express.Router();  // get an instance of the express Router
 
 app.use('/api', router);
 
 // api routes go here
+// =============================================================================
 
 router.post('/hero', (req, res) => {
 
@@ -102,7 +112,6 @@ router.get('/villain', (req, res) => {
   Villain.find(function(err, villains) {
     if (err)
     res.send(err);
-
     res.json(villains);
   });
 });
@@ -129,9 +138,35 @@ router.get('/environment', (req, res) => {
   Environment.find(function(err, environments) {
     if (err)
     res.send(err);
-
     res.json(environments);
   });
+});
+
+router.post('/decksOwned', (req, res) => {
+
+  var newdeckOwned = new decksOwned({
+    username: req.body.username,
+    deckName: req.body.deckName
+  });
+
+  // console.log(newEnvironment);
+
+  newdeckOwned.save().then((doc) => {
+    res.send(doc);
+    console.log('Deck added');
+  }, (e) => {
+    res.status(400).send(e);
+  });
+});
+
+router.get('/decksOwned', (req, res) => {
+
+  decksOwned.find(function(err, decksOwned) {
+    if (err)
+    res.send(err);
+    res.json(decksOwned);
+  });
+
 });
 
 router.post('/user', (req, res) => {
@@ -203,7 +238,7 @@ router.delete('/user/:userID', (req, res, next) => {
 
 router.post('/login', (req, res, next) => {
 
-  User.findOne( {email: req.body.email} )
+  User.findOne( {username: req.body.username} )
   .exec()
   .then(user => {
     if (user.length < 1){
@@ -222,102 +257,135 @@ router.post('/login', (req, res, next) => {
           email: user.email,
           username: user.username
         },
-          JWT_KEY,
-          {expiresIn: "1h"}
-        );
+        JWT_KEY,
+        {expiresIn: "1h"});
 
-          // res.set('authorization', `Bearer ${token}`)
-          res.cookie('authorization', token)
+        // res.set('authorization', `Bearer ${token}`)
+        res.cookie('authorization', token)
 
-          return res.status(200).json({
-            message: "Auth successful",
-            token: token
-          });
-        }
-        return res.status(401).json({
-          message: "Auth failed"
-        })
+        return res.status(200).json({
+          message: "Auth successful",
+          token: token
+        });
+      }
+      return res.status(401).json({
+        message: "Auth failed"
       })
     })
-    .catch(err => {
-      console.log(err);
-      res.status(500).json({
-        error: err
-      });
-    });
-
+  })
+  .catch(err => {
+    console.log(err);
+    // messageFail = 'Something was wrong with that...'
+    res.status(500).redirect('/login')
   });
+
+});
+
+router.get('/allDecks', (req, res) => {
+
+  heroes = Hero.find(function(err, heroes) {
+    if (err)
+    res.send(err);
+    return heroes;
+  });
+
+  villains = Villain.find(function(err, villains) {
+    if (err)
+    res.send(err);
+    return villains
+  });
+
+  environments = Environment.find(function(err, environments) {
+    if (err)
+    res.send(err);
+    return environments
+  });
+
+  // res.json({
+  //   heroes: heroes,
+  //   villains: villains,
+  //   environments: environments
+  // })
+  console.log(heroes);
+  console.log(villains);
+  console.log(environments);
+
+});
 
 // non api routes begin here
+// =============================================================================
 
-app.get('/', (req, res) => {
+app.get('/', verifyToken, (req, res) => {
 
-  if(typeof messageOK !== 'undefined') {
-    res.render('index', { messageOK: messageOK});
+  username = req.authData.username
+  console.log(username);
+
+  if(req.authData === 'undefined') {
+    res.render('index');
   } else {
-    res.render('index')
+    res.render('index', { username: username})
   }
 
-  });
+});
 
 app.get('/heroes', (req, res) => {
 
-    var heroes = { method: 'GET',
-    url: `${URL_VAR}/api/hero`,
-    headers:
-    { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
-    'Cache-Control': 'no-cache',
-    'Content-Type': 'application/x-www-form-urlencoded' } };
+  var heroes = { method: 'GET',
+  url: `${URL_VAR}api/hero`,
+  headers:
+  { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
+  'Cache-Control': 'no-cache',
+  'Content-Type': 'application/x-www-form-urlencoded' } };
 
-    request(heroes, function (error, response, body) {
-      if (error) throw new Error(error);
+  request(heroes, function (error, response, body) {
+    if (error) throw new Error(error);
 
-      res.render('deckRender', { title: "Heroes", array: JSON.parse(body) } );
-    });
-
+    res.render('deckRender', { title: "Heroes", array: JSON.parse(body) } );
   });
+
+});
 
 app.get('/villains', (req, res) => {
 
-    var villains = { method: 'GET',
-    url: `${URL_VAR}/api/villain`,
-    headers:
-    { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
-    'Cache-Control': 'no-cache',
-    'Content-Type': 'application/x-www-form-urlencoded' } };
+  var villains = { method: 'GET',
+  url: `${URL_VAR}api/villain`,
+  headers:
+  { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
+  'Cache-Control': 'no-cache',
+  'Content-Type': 'application/x-www-form-urlencoded' } };
 
-    request(villains, function (error, response, body) {
-      if (error) throw new Error(error);
+  request(villains, function (error, response, body) {
+    if (error) throw new Error(error);
 
 
-      res.render('deckRender', { title: "Villains", array: JSON.parse(body) } );
-    });
-
+    res.render('deckRender', { title: "Villains", array: JSON.parse(body) } );
   });
+
+});
 
 app.get('/environments', (req, res) => {
 
-    var environments = { method: 'GET',
-    url: `${URL_VAR}/api/environment`,
-    headers:
-    { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
-    'Cache-Control': 'no-cache',
-    'Content-Type': 'application/x-www-form-urlencoded' } };
+  var environments = { method: 'GET',
+  url: `${URL_VAR}api/environment`,
+  headers:
+  { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
+  'Cache-Control': 'no-cache',
+  'Content-Type': 'application/x-www-form-urlencoded' } };
 
-    request(environments, function (error, response, body) {
-      if (error) throw new Error(error);
+  request(environments, function (error, response, body) {
+    if (error) throw new Error(error);
 
 
-      res.render('deckRender', { title: "Environments", array: JSON.parse(body) } );
-    });
-
+    res.render('deckRender', { title: "Environments", array: JSON.parse(body) } );
   });
+
+});
 
 app.get('/signup', (req, res, next) => {
 
-    res.render('signup', { URL_VAR: URL_VAR })
+  res.render('signup', { URL_VAR: URL_VAR })
 
-  });
+});
 
 app.get('/login', (req, res, next) => {
 
@@ -327,21 +395,40 @@ app.get('/login', (req, res, next) => {
     res.render('login')
   }
 
-  });
+});
 
-app.get('/user/check', verifyToken, (req,res) => {
+app.get('/:username/profile', verifyToken, (req,res) => {
 
   if(typeof messageOK !== 'undefined') {
     res.render('profile', { messageOK: messageOK, username: req.authData.username });
   } else {
     res.redirect('/login')
   }
-  // res.render('success', { username: req.authData.username });
+
+});
+
+app.get('/:username/heroForm', verifyToken, (req, res) => {
+
+  // var username = req.authData['username']
+
+  var heroes = { method: 'GET',
+  url: `${URL_VAR}api/hero`,
+  headers:
+  { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
+  'Cache-Control': 'no-cache',
+  'Content-Type': 'application/x-www-form-urlencoded' } };
+
+  request(heroes, function (error, response, body) {
+    if (error) throw new Error(error);
+
+    res.render('heroForm', { array: JSON.parse(body), username: req.authData.username } );
+  });
 
 });
 
 // Verify Token function
 // =============================================================================
+
 function verifyToken(req, res, next) {
 
   // Get auth header value
@@ -356,21 +443,17 @@ function verifyToken(req, res, next) {
     req.token = bearer;
 
     jwt.verify(req.token, JWT_KEY, (err, authData) => {
-
       if(err) {
-
         res.sendStatus(403);
       } else {
-        req.authData = authData;
         messageOK = 'You\'re logged in now'
+        req.authData = authData;
         next();
       }
     })
   } else {
-
     messageFail = "I can\'t let you do that, Fox";
     res.redirect('/login')
-
   }
 
 }

@@ -1,5 +1,7 @@
 $(document).ready(function() {
 
+  var URL_VAR = 'https://sotm-randomizer.herokuapp.com/';
+
   $("#submitNewUser").click(function(event) {
 
     data = {
@@ -11,11 +13,12 @@ $(document).ready(function() {
     console.log(data);
     event.preventDefault();
     $.post({
-      url: `http://localhost:3000/api/user`,
+      url: URL_VAR + 'api/user',
       data: data,
       success: function(data) {
-        alert('New User created~ Feel free to log in and view your profile page')
-        window.location.replace(`http://localhost:3000/`);
+        // alert('New User created~ Feel free to log in and view your profile page')
+        messageOK = 'New User created~ Feel free to log in and view your profile page'
+        window.location.replace(URL_VAR);
       }
     });
   });
@@ -23,17 +26,29 @@ $(document).ready(function() {
   $("#submitLogin").click(function(event) {
 
     data = {
-      email: $('#email').val(),
+      username: $('#username').val(),
       password: $('#password').val()
     };
 
-    // console.log(data);
     event.preventDefault();
     $.post({
-      url: `http://localhost:3000/api/login`,
+      url: URL_VAR + 'api/login',
       data: data,
-      success: function(data) {
-        window.location.replace(`http://localhost:3000/user/check`);
+      success: function(notData) {
+        window.location.replace(URL_VAR + data.username + '/profile');
+      }
+    });
+  });
+
+  $("#heroForm").submit(function(event) {
+    var form = $(this);
+    event.preventDefault();
+    $.ajax({
+      type: "POST",
+      url: URL_VAR + "/api/decksOwned",
+      data: form.serialize(), // serializes the form's elements.
+      success: function(res) {
+        window.location.replace("/profile");
       }
     });
   });
