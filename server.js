@@ -38,7 +38,7 @@ app.use(morgan('dev')); // log every request to the console
 var port = process.env.PORT || 3000;
 var DB_USERNAME = process.env.DB_USERNAME;
 var DB_PW = process.env.DB_PW;
-var URL_VAR = 'https://sotm-randomizer.herokuapp.com/';
+var URL_VAR = 'http://localhost:3000/';
 var JWT_KEY = process.env.JWT_KEY;
 
 var Hero     = require('./models/hero.js');
@@ -319,16 +319,15 @@ router.get('/allDecks', (req, res) => {
 
 app.get('/', (req, res) => {
 
-  cookieHeader = req.headers.cookie;
-  cookieSplit = cookieHeader.split('authorization=');
-  cookieSplit2 = String(cookieSplit[1].split(';'))
-  cookie = jwtDecode(cookieSplit2)
-  console.log(cookie['username']);
-
-  if(req.authData === 'undefined') {
-    res.render('index');
-  } else {
+  if (req.headers.cookie !== undefined) {
+    cookieHeader = req.headers.cookie;
+    cookieSplit = cookieHeader.split('authorization=');
+    cookieSplit2 = String(cookieSplit[1].split(';'))
+    cookie = jwtDecode(cookieSplit2)
+    console.log(cookie['username']);
     res.render('index', { username: cookie['username']})
+  } else {
+    res.render('index');
   }
 
 });
