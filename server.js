@@ -28,6 +28,7 @@ app.set('view engine', 'hbs');
 // configure app to use bodyParser()
 // this will get the data from a POST
 // =============================================================================
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(morgan('dev')); // log every request to the console
@@ -251,34 +252,33 @@ router.post('/login', (req, res, next) => {
     bcrypt.compare(req.body.password, user.password, (err, result) => {
 
       if (err) {
-        return res.status(401).json({
-          message: "Auth failed"
-        })
+        return res.status(401)
+        messageFail = "I can\'t let you do that Fox";
       } if (result) {
         const token = jwt.sign({
           email: user.email,
-          username: user.username
+          username: user.username,
+          admin: user.admin
         },
         JWT_KEY,
         {expiresIn: "1h"});
 
         // res.set('authorization', `Bearer ${token}`)
-        res.cookie('authorization', token)
+        res.cookie('authorization', token,  {maxAge: 360000})
 
         return res.status(200).json({
           message: "Auth successful",
           token: token
         });
       }
-      return res.status(401).json({
-        message: "Auth failed"
-      })
+      return res.status(401)
+      messageFail = "I can\'t let you do that Fox";
     })
   })
   .catch(err => {
-    console.log(err);
-    // messageFail = 'Something was wrong with that...'
+    // console.log(err);
     res.status(500).redirect('/login')
+    messageFail = 'Something was wrong with that...'
   });
 
 });
@@ -320,11 +320,8 @@ router.get('/allDecks', (req, res) => {
 app.get('/', (req, res) => {
 
   if (req.headers.cookie !== undefined) {
-    cookieHeader = req.headers.cookie;
-    cookieSplit = cookieHeader.split('authorization=');
-    cookieSplit2 = String(cookieSplit[1].split(';'))
-    cookie = jwtDecode(cookieSplit2)
-    console.log(cookie['username']);
+    cookie = parseCookie(req.headers.cookie);
+    console.log(cookie);
     res.render('index', { username: cookie['username']})
   } else {
     res.render('index');
@@ -403,14 +400,15 @@ app.get('/login', (req, res, next) => {
 
 app.get('/:username/profile', verifyToken, (req,res) => {
 
-  if(typeof messageOK !== 'undefined') {
-    res.render('profile', { messageOK: messageOK, username: req.authData.username });
-  }
-  // if (req.authData.admin !== undefined && messageOK !== 'undefined') {
-  //   res.render('adminPage', { messageOK: messageOK, username: req.authData.username })
-  // }
-  else {
-    res.redirect('/login')
+  cookie = parseCookie(req.headers.cookie);
+  // console.log(cookie);
+
+  if (cookie['admin'] !== undefined) {
+    res.render('adminPage', { username: cookie['username']})
+  }  if(typeof messageOK !== 'undefined' && cookie['admin'] == undefined) {
+    res.render('profile', { messageOK: messageOK, username: cookie['username'] });
+  } else {
+    res.render('profile', { username: cookie['username'] });
   }
 
 });
@@ -434,6 +432,44 @@ app.get('/:username/heroForm', verifyToken, (req, res) => {
 
 });
 
+app.get('/:username/villainForm', verifyToken, (req, res) => {
+
+  // var username = req.authData['username']
+
+  var villains = { method: 'GET',
+  url: `${URL_VAR}api/villain`,
+  headers:
+  { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
+  'Cache-Control': 'no-cache',
+  'Content-Type': 'application/x-www-form-urlencoded' } };
+
+  request(villains, function (error, response, body) {
+    if (error) throw new Error(error);
+
+    res.render('deckForm', { type: 'villain', array: JSON.parse(body), username: req.authData.username } );
+  });
+
+});
+
+app.get('/:username/envForm', verifyToken, (req, res) => {
+
+  // var username = req.authData['username']
+
+  var environments = { method: 'GET',
+  url: `${URL_VAR}api/environment`,
+  headers:
+  { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
+  'Cache-Control': 'no-cache',
+  'Content-Type': 'application/x-www-form-urlencoded' } };
+
+  request(environments, function (error, response, body) {
+    if (error) throw new Error(error);
+
+    res.render('deckForm', { type: 'environment', array: JSON.parse(body), username: req.authData.username } );
+  });
+
+});
+
 // Middleware Functions go here
 // =============================================================================
 
@@ -441,6 +477,7 @@ function verifyToken(req, res, next) {
 
   // Get auth header value
   const bearerHeader = req.headers.cookie;
+  // console.log(bearerHeader);
 
   // Check if bearer is undefined
   if(typeof bearerHeader !== 'undefined') {
@@ -453,6 +490,8 @@ function verifyToken(req, res, next) {
     jwt.verify(req.token, JWT_KEY, (err, authData) => {
       if(err) {
         res.sendStatus(403);
+        messageFail = 'Somethin ain\'t right'
+        res.redirect('/login')
       } else {
         messageOK = 'You\'re logged in now'
         req.authData = authData;
@@ -463,6 +502,18 @@ function verifyToken(req, res, next) {
     messageFail = "I can\'t let you do that, Fox";
     res.redirect('/login')
   }
+
+}
+
+// Cookie Parse Function
+// =============================================================================
+
+function parseCookie(cookie) {
+
+  cookieSplit = cookie.split('authorization=');
+  cookieSplit2 = String(cookieSplit[1].split(';'))
+  cookie = jwtDecode(cookieSplit2)
+  return cookie;
 
 }
 

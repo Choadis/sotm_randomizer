@@ -1,6 +1,6 @@
 $(document).ready(function() {
 
-  var URL_VAR = 'https://sotm-randomizer.herokuapp.com/';
+  var URL_VAR = 'http://localhost:3000/';
 
   $("#submitNewUser").click(function(event) {
 
@@ -40,17 +40,30 @@ $(document).ready(function() {
     });
   });
 
-  $("#heroForm").submit(function(event) {
-    var form = $(this);
-    event.preventDefault();
-    $.ajax({
-      type: "POST",
-      url: URL_VAR + "/api/decksOwned",
-      data: form.serialize(), // serializes the form's elements.
-      success: function(res) {
-        window.location.replace("/profile");
-      }
-    });
-  });
+  // $("#submitDeckForm").submit(function(event) {
+  //
+  //   data = {
+  //     deckType: $('#deckType').val();
+  //   }
+  //
+  //   console.log(data);
+  //
+  //   // $('.form-thing:checked'){
+  //   //   console.log(this);
+  //   // }
+  //
+  //
+  //   // var form = $(this);
+  //   // event.preventDefault();
+  //   // console.log(form.serialize());`
+  //   // $.ajax({
+  //   //   type: "POST",
+  //   //   url: URL_VAR + "/api/decksOwned",
+  //   //   data: form.serialize(), // serializes the form's elements.
+  //   //   success: function(res) {
+  //   //     window.location.replace("/profile");
+  //   //   }
+  //   // });
+  // });
 
 });
