@@ -321,7 +321,6 @@ app.get('/', (req, res) => {
 
   if (req.headers.cookie !== undefined) {
     cookie = parseCookie(req.headers.cookie);
-    console.log(cookie);
     res.render('index', { username: cookie['username']})
   } else {
     res.render('index');
@@ -403,11 +402,11 @@ app.get('/:username/profile', verifyToken, (req,res) => {
   cookie = parseCookie(req.headers.cookie);
   // console.log(cookie);
 
-  if (cookie['admin'] !== undefined) {
-    res.render('adminPage', { username: cookie['username']})
-  }  if(typeof messageOK !== 'undefined' && cookie['admin'] == undefined) {
+  if (typeof messageOK !== 'undefined' && cookie['admin'] == undefined) {
     res.render('profile', { messageOK: messageOK, username: cookie['username'] });
-  } else {
+  } if (cookie['admin'] !== undefined) {
+    res.render('adminPage', { username: cookie['username']})
+  }  else {
     res.render('profile', { username: cookie['username'] });
   }
 
