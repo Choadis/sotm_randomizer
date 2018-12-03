@@ -264,7 +264,7 @@ router.post('/login', (req, res, next) => {
         {expiresIn: "1h"});
 
         // res.set('authorization', `Bearer ${token}`)
-        res.cookie('authorization', token,  {maxAge: 360000})
+        res.cookie('authorization', token,  {maxAge: 3600000})
 
         return res.status(200).json({
           message: "Auth successful",
@@ -317,14 +317,27 @@ router.get('/allDecks', (req, res) => {
 // non api routes begin here
 // =============================================================================
 
-app.get('/', (req, res) => {
+app.get('/', (req, res, next) => {
 
-  if (req.headers.cookie !== undefined) {
-    cookie = parseCookie(req.headers.cookie);
-    res.render('index', { username: cookie['username']})
+  console.log(req.headers.cookie);
+
+  if (req.headers.cookie) {
+    cookie = parseCookie(req.headers.cookie)
   } else {
-    res.render('index');
+    cookie = undefined
   }
+
+  if (cookie == undefined || cookie['logged_in'] == false) {
+    res.render('index')
+  } else {
+    res.render('index', { username: cookie['username']})
+  }
+
+  // if (cookie['authorization'] !== false) {
+  //   res.render('index', { username: cookie['username']})
+  // } else {
+  //   res.render('index');
+  // }
 
 });
 
@@ -383,7 +396,7 @@ app.get('/environments', (req, res) => {
 
 app.get('/signup', (req, res, next) => {
 
-  res.render('signup', { URL_VAR: URL_VAR })
+  res.render('signup')
 
 });
 
@@ -397,10 +410,48 @@ app.get('/login', (req, res, next) => {
 
 });
 
+app.get('/addNewHero', verifyToken, (req, res,) => {
+
+  cookie = parseCookie(req.headers.cookie);
+
+  if (cookie['admin'] !== undefined){
+    res.render('newDeckForm', {type: 'hero'})
+  } else {
+    messageFail = 'Admins only my dude'
+    res.render('login', {messageFail: messageFail})
+  }
+
+});
+
+app.get('/addNewVillain', verifyToken, (req, res,) => {
+
+  cookie = parseCookie(req.headers.cookie);
+
+  if (cookie['admin'] !== undefined){
+    res.render('newDeckForm', {type: 'villain'})
+  } else {
+    messageFail = 'Admins only my dude'
+    res.render('login', {messageFail: messageFail})
+  }
+
+});
+
+app.get('/addNewEnv', verifyToken, (req, res,) => {
+
+  cookie = parseCookie(req.headers.cookie);
+
+  if (cookie['admin'] !== undefined){
+    res.render('newDeckForm', {type: 'environment'})
+  } else {
+    messageFail = 'Admins only my dude'
+    res.render('login', {messageFail: messageFail})
+  }
+
+});
+
 app.get('/:username/profile', verifyToken, (req,res) => {
 
   cookie = parseCookie(req.headers.cookie);
-  // console.log(cookie);
 
   if (typeof messageOK !== 'undefined' && cookie['admin'] == undefined) {
     res.render('profile', { messageOK: messageOK, username: cookie['username'] });
@@ -490,7 +541,7 @@ function verifyToken(req, res, next) {
       if(err) {
         res.sendStatus(403);
         messageFail = 'Somethin ain\'t right'
-        res.redirect('/login')
+        res.redirect('/login', {messageFail: messageFail})
       } else {
         messageOK = 'You\'re logged in now'
         req.authData = authData;
