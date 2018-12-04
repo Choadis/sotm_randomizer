@@ -1,3 +1,6 @@
+// Helper Functions
+// =============================================================================
+
 // Sauce: https://stackoverflow.com/questions/7215547/how-to-update-and-delete-a-cookie
 
 function createCookie(name,value,days) {
@@ -30,6 +33,38 @@ function eraseCookie(name) {
   createCookie(name,"",-1);
 }
 
+function parseCookie(cookie) {
+
+  cookieSplit = cookie.split('authorization=');
+  cookieSplit2 = String(cookieSplit[1].split(';'))
+  cookie = jwt_decode(cookieSplit2)
+  return cookie;
+
+}
+
+// Sauce: https://stackoverflow.com/questions/8563240/how-to-get-all-checked-checkboxes
+
+// Pass the checkbox name to the function
+function getCheckedBoxes(chkboxName) {
+  var checkboxes = document.querySelectorAll('[data-name]');;
+  // console.log(checkboxes);
+  var checkboxesChecked = [];
+  // loop over them all
+  for (var i=0; i<checkboxes.length; i++) {
+     // And stick the checked ones onto an array...
+     if (checkboxes[i].checked) {
+        checkboxesChecked.push(checkboxes[i].id);
+        // console.log(checkboxesChecked);
+     }
+  }
+  // Return the array
+  // console.log(checkboxesChecked);
+  return checkboxesChecked;
+}
+
+
+// Handlers
+// =============================================================================
 
 $(document).ready(function() {
 
@@ -75,38 +110,32 @@ $(document).ready(function() {
 
   $("#logout").click(function(event) {
     eraseCookie('authorization')
-    alert('Logout successful, close this browser window to finalize it')
-    // res.setCookie('authorization', '', 0)
+    alert('Logout successful')
     window.location.replace(URL_VAR);
     console.log(document.cookie);
-    // cookies.set('authorization', {expires: new Date(0)})
-    // console.log($.cookie);
   })
 
-  // $("#submitDeckForm").submit(function(event) {
-  //
-  //   data = {
-  //     deckType: $('#deckType').val();
-  //   }
-  //
-  //   console.log(data);
-  //
-  //   // $('.form-thing:checked'){
-  //   //   console.log(this);
-  //   // }
-  //
-  //
-  //   // var form = $(this);
-  //   // event.preventDefault();
-  //   // console.log(form.serialize());`
-  //   // $.ajax({
-  //   //   type: "POST",
-  //   //   url: URL_VAR + "/api/decksOwned",
-  //   //   data: form.serialize(), // serializes the form's elements.
-  //   //   success: function(res) {
-  //   //     window.location.replace("/profile");
-  //   //   }
-  //   // });
-  // });
+  $('#submitDeckForm').click(function(event) {
+
+    checkedBoxes = getCheckedBoxes('deckName');
+
+    data = {
+      username: parseCookie(document.cookie)['username'],
+      type: $('#deckType').val(),
+      decksOwned: JSON.stringify(checkedBoxes)
+    }
+
+    console.log(data);
+    event.preventDefault();
+    $.post({
+      url: URL_VAR + 'api/decksOwned',
+      data: data,
+      success: function(notData) {
+        alert('Decks updated')
+        window.location.replace(URL_VAR + data.username + '/profile');
+      }
+    });
+
+  })
 
 });
