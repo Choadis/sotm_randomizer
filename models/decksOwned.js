@@ -4,14 +4,17 @@ var Schema       = mongoose.Schema;
 var decksOwnedSchema   = new Schema({
   username: {
     type: String,
-    unique: true,
-    required: true
+    required: true,
+    unique: false
   } ,
-  deckName: {
+  type: {
     type: String,
-    unique: true,
+    required: true
+  },
+  decksOwned: {
+    type: String,
     required: true
   }
 });
 
-module.exports = mongoose.model('decksOwned', decksOwnedSchema);
+module.exports = mongoose.model('DecksOwned', decksOwnedSchema);
