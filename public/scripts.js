@@ -76,7 +76,7 @@ function rng(array, number) {
   }
 
   // console.log(randomArray);
-  return randomArray
+  return randomArray.sort()
 
 }
 
