@@ -164,15 +164,15 @@ $(document).ready(function() {
     // $('#envBox').removeClass('d-none')
 
     var randomHero = $('#heroSelector').val()
-    var randomVillain = $('#heroSelector').val()
-    var randomEnv = $('#heroSelector').val()
+    var randomVillain = $('#villainSelector').val()
+    var randomEnv = $('#envSelector').val()
 
     heroes = $.get({
       url: '/api/hero',
       success: function (data) {
         randomHeroes = rng(data, randomHero)
         for (i = 0; i < randomHeroes.length; i++) {
-          $('#heroBox').append("<li class=list-group-item>" + randomHeroes[i] + "<li>")
+          $('#heroBox').append("<li class=\"list-group-item mb-1\">" + randomHeroes[i] + "<li>")
         }
       }
     })
@@ -182,7 +182,7 @@ $(document).ready(function() {
       success: function (data) {
         randomVillains = rng(data, randomVillain)
         for (i = 0; i < randomVillains.length; i++) {
-          $('#villainBox').append("<li class=list-group-item>" + randomVillains[i] + "<li>")
+          $('#villainBox').append("<li class=\"list-group-item mb-1\">" + randomVillains[i] + "<li>")
         }
       }
     })
@@ -192,7 +192,7 @@ $(document).ready(function() {
       success: function (data) {
         randomEnvs = rng(data, randomEnv)
         for (i = 0; i < randomEnvs.length; i++) {
-          $('#envBox').append("<li class=list-group-item>" + randomEnvs[i] + "<li>")
+          $('#envBox').append("<li class=\"list-group-item mb-1\">" + randomEnvs[i] + "<li>")
         }
       }
     })
