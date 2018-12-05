@@ -51,15 +51,33 @@ function getCheckedBoxes(chkboxName) {
   var checkboxesChecked = [];
   // loop over them all
   for (var i=0; i<checkboxes.length; i++) {
-     // And stick the checked ones onto an array...
-     if (checkboxes[i].checked) {
-        checkboxesChecked.push(checkboxes[i].id);
-        // console.log(checkboxesChecked);
-     }
+    // And stick the checked ones onto an array...
+    if (checkboxes[i].checked) {
+      checkboxesChecked.push(checkboxes[i].id);
+      // console.log(checkboxesChecked);
+    }
   }
   // Return the array
   // console.log(checkboxesChecked);
   return checkboxesChecked;
+}
+
+function rng(array, number) {
+
+  randomArray = [];
+
+  for (i = 0; i < number; i++) {
+
+    var randomDeck = array[Math.floor(Math.random() * array.length)];
+
+    randomArray.push(randomDeck['name']);
+    array.splice(randomDeck, 1)
+
+  }
+
+  // console.log(randomArray);
+  return randomArray
+
 }
 
 
@@ -135,6 +153,49 @@ $(document).ready(function() {
         window.location.replace(URL_VAR + data.username + '/profile');
       }
     });
+
+  })
+
+  $('#submitSelectorForm').click(function(event) {
+
+    event.preventDefault();
+    $('.card').removeClass('d-none')
+    // $('#villainBox').removeClass('d-none')
+    // $('#envBox').removeClass('d-none')
+
+    var randomHero = $('#heroSelector').val()
+    var randomVillain = $('#heroSelector').val()
+    var randomEnv = $('#heroSelector').val()
+
+    heroes = $.get({
+      url: '/api/hero',
+      success: function (data) {
+        randomHeroes = rng(data, randomHero)
+        for (i = 0; i < randomHeroes.length; i++) {
+          $('#heroBox').append("<li class=list-group-item>" + randomHeroes[i] + "<li>")
+        }
+      }
+    })
+
+    villains = $.get({
+      url: '/api/villain',
+      success: function (data) {
+        randomVillains = rng(data, randomVillain)
+        for (i = 0; i < randomVillains.length; i++) {
+          $('#villainBox').append("<li class=list-group-item>" + randomVillains[i] + "<li>")
+        }
+      }
+    })
+
+    env = $.get({
+      url: '/api/environment',
+      success: function (data) {
+        randomEnvs = rng(data, randomEnv)
+        for (i = 0; i < randomEnvs.length; i++) {
+          $('#envBox').append("<li class=list-group-item>" + randomEnvs[i] + "<li>")
+        }
+      }
+    })
 
   })
 

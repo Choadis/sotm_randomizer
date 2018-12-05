@@ -48,6 +48,10 @@ var Environment     = require('./models/environment.js');
 var User = require('./models/user.js');
 var DecksOwned = require('./models/decksOwned.js');
 
+var heroArray = [];
+var villainArray = [];
+var envArray = [];
+
 // database connection
 // =============================================================================
 
@@ -69,11 +73,7 @@ router.post('/hero', (req, res) => {
     name: req.body.name,
     type: req.body.type,
     set: req.body.set
-  });      // create a new instance of the hero model with the name set from the req
-
-  // console.log(newHero);
-
-  // save the hero and check for errors
+  });
 
   newHero.save().then((doc) => {
     res.send(doc);
@@ -306,37 +306,6 @@ router.post('/login', (req, res, next) => {
 
 });
 
-router.get('/allDecks', (req, res) => {
-
-  heroes = Hero.find(function(err, heroes) {
-    if (err)
-    res.send(err);
-    return heroes;
-  });
-
-  villains = Villain.find(function(err, villains) {
-    if (err)
-    res.send(err);
-    return villains
-  });
-
-  environments = Environment.find(function(err, environments) {
-    if (err)
-    res.send(err);
-    return environments
-  });
-
-  // res.json({
-  //   heroes: heroes,
-  //   villains: villains,
-  //   environments: environments
-  // })
-  console.log(heroes);
-  console.log(villains);
-  console.log(environments);
-
-});
-
 // non api routes begin here
 // =============================================================================
 
@@ -369,8 +338,7 @@ app.get('/heroes', (req, res) => {
   var heroes = { method: 'GET',
   url: `${URL_VAR}api/hero`,
   headers:
-  { 'Postman-Token': '7fabb12b-c302-4477-b9dc-09b50a3519e5',
-  'Cache-Control': 'no-cache',
+  {'Cache-Control': 'no-cache',
   'Content-Type': 'application/x-www-form-urlencoded' } };
 
   request(heroes, function (error, response, body) {
@@ -584,7 +552,7 @@ function verifyToken(req, res, next) {
 
 }
 
-// Cookie Parse Function
+// Helper Functions
 // =============================================================================
 
 function parseCookie(cookie) {
