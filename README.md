@@ -45,6 +45,9 @@ Give an example
 * [Express](https://expressjs.com/)
 * [Mongoose](https://mongoosejs.com/)
 * [Handlebars](https://handlebarsjs.com/)
+* [Jwt-decode](https://github.com/auth0/jwt-decode)
+* jQuery
+* BootStrap
 
 ## Authors
 

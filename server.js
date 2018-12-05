@@ -543,6 +543,12 @@ app.get('/:username/envForm', verifyToken, (req, res) => {
 
 });
 
+app.get('/randomizer', (req, res) => {
+
+  res.render('randomizer')
+
+});
+
 // Middleware Functions go here
 // =============================================================================
 
