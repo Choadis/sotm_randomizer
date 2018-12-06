@@ -68,10 +68,12 @@ function rng(array, number) {
 
   for (i = 0; i < number; i++) {
 
-    var randomDeck = array[Math.floor(Math.random() * array.length)];
+    var index = Math.floor(Math.random() * array.length);
+    var randomDeck = array[index];
 
     randomArray.push(randomDeck['name']);
-    array.splice(randomDeck, 1)
+    array.splice(index, 1)
+    // console.log(array);
 
   }
 
@@ -80,6 +82,21 @@ function rng(array, number) {
 
 }
 
+function rngLoggedIn(array, number) {
+
+  randomArray = [];
+
+  for (i = 0; i < number; i++) {
+
+    var index = Math.floor(Math.random() * array.length);
+    var randomDeck = array[index];
+
+    randomArray.push(randomDeck);
+    array.splice(index, 1)
+    console.log(array);
+
+  }
+}
 
 // Handlers
 // =============================================================================
@@ -167,36 +184,82 @@ $(document).ready(function() {
     var randomVillain = $('#villainSelector').val()
     var randomEnv = $('#envSelector').val()
 
-    heroes = $.get({
-      url: '/api/hero',
-      success: function (data) {
-        randomHeroes = rng(data, randomHero)
-        for (i = 0; i < randomHeroes.length; i++) {
-          $('#heroBox').append("<li class=\"list-group-item mb-1\">" + randomHeroes[i] + "<li>")
-        }
-      }
-    })
+    var token = readCookie('authorization');
+    // console.log(token);
 
-    villains = $.get({
-      url: '/api/villain',
-      success: function (data) {
-        randomVillains = rng(data, randomVillain)
-        for (i = 0; i < randomVillains.length; i++) {
-          $('#villainBox').append("<li class=\"list-group-item mb-1\">" + randomVillains[i] + "<li>")
-        }
-      }
-    })
+    if (token !== null){
+      var cookie = jwt_decode(token);
+    } else {
+      cookie = null;
+    }
 
-    env = $.get({
-      url: '/api/environment',
-      success: function (data) {
-        randomEnvs = rng(data, randomEnv)
-        for (i = 0; i < randomEnvs.length; i++) {
-          $('#envBox').append("<li class=\"list-group-item mb-1\">" + randomEnvs[i] + "<li>")
-        }
-      }
-    })
+    // console.log(cookie);
 
+    if (cookie !== null) {
+
+      heroes = $.get({
+        url: '/api/decksOwned/' + cookie['username'] + '/hero',
+        success: function (data) {
+          randomHeroes = rngLoggedIn(data['decksOwned'], randomHero)
+          for (i = 0; i < randomHeroes.length; i++) {
+            $('#heroBox').append("<li class=\"list-group-item mb-1\">" + randomHeroes[i] + "<li>")
+          }
+        }
+      })
+
+      villains = $.get({
+        url: '/api/decksOwned/' + cookie['username'] + '/villain',
+        success: function (data) {
+          randomVillains = rngLoggedIn(data['decksOwned'], randomVillain)
+          for (i = 0; i < randomVillains.length; i++) {
+            $('#villainBox').append("<li class=\"list-group-item mb-1\">" + randomVillains[i] + "<li>")
+          }
+        }
+      })
+
+      env = $.get({
+        url: '/api/decksOwned/' + cookie['username'] + '/environment',
+        success: function (data) {
+          randomEnvs = rngLoggedIn(data['decksOwned'], randomEnv)
+          for (i = 0; i < randomEnvs.length; i++) {
+            $('#envBox').append("<li class=\"list-group-item mb-1\">" + randomEnvs[i] + "<li>")
+          }
+        }
+      })
+
+    } else {
+
+      heroes = $.get({
+        url: '/api/hero',
+        success: function (data) {
+          randomHeroes = rng(data, randomHero)
+          for (i = 0; i < randomHeroes.length; i++) {
+            $('#heroBox').append("<li class=\"list-group-item mb-1\">" + randomHeroes[i] + "<li>")
+          }
+        }
+      })
+
+      villains = $.get({
+        url: '/api/villain',
+        success: function (data) {
+          randomVillains = rng(data, randomVillain)
+          for (i = 0; i < randomVillains.length; i++) {
+            $('#villainBox').append("<li class=\"list-group-item mb-1\">" + randomVillains[i] + "<li>")
+          }
+        }
+      })
+
+      env = $.get({
+        url: '/api/environment',
+        success: function (data) {
+          randomEnvs = rng(data, randomEnv)
+          for (i = 0; i < randomEnvs.length; i++) {
+            $('#envBox').append("<li class=\"list-group-item mb-1\">" + randomEnvs[i] + "<li>")
+          }
+        }
+      })
+
+    }
   })
 
 });
