@@ -185,13 +185,19 @@ router.post('/decksOwned', (req, res) => {
   });
 });
 
-router.get('/decksOwned', (req, res) => {
+router.get('/decksOwned/:username/:type', (req, res) => {
 
-  decksOwned.find(function(err, decksOwned) {
-    if (err)
-    res.send(err);
-    res.json(decksOwned);
+DecksOwned.find({username: req.params.username, type: req.params.type})
+.exec()
+.then(doc => {
+  res.json(doc)
+})
+.catch(err => {
+  console.log(err);
+  res.status(500).json({
+    error: err
   });
+});
 
 });
 
