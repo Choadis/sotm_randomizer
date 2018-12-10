@@ -39,7 +39,7 @@ app.use(morgan('dev')); // log every request to the console
 var port = process.env.PORT || 3000;
 var DB_USERNAME = process.env.DB_USERNAME;
 var DB_PW = process.env.DB_PW;
-var URL_VAR = 'https://sotm-randomizer.herokuapp.com/';
+var URL_VAR = 'http://localhost:3000/';
 var JWT_KEY = process.env.JWT_KEY;
 
 var Hero     = require('./models/hero.js');
@@ -87,7 +87,7 @@ router.get('/hero', (req, res) => {
   Hero.find(function(err, heroes) {
     if (err)
     res.send(err);
-    res.json(heroes);
+    res.json(heroes;
   });
 });
 
@@ -185,6 +185,14 @@ router.post('/decksOwned', (req, res) => {
   });
 });
 
+router.get('/decksOwned', (req, res) => {
+  DecksOwned.find(function(err, decksOwned) {
+    if (err)
+    res.send(err);
+    res.json(decksOwned);
+  });
+});
+
 router.get('/decksOwned/:username/:type', (req, res) => {
 
 DecksOwned.find({username: req.params.username, type: req.params.type})
@@ -250,9 +258,9 @@ router.post('/user', (req, res) => {
 
 });
 
-router.delete('/user/:userID', (req, res, next) => {
+router.delete('/user/:username', (req, res, next) => {
 
-  User.deleteOne({ _id: req.params.userID })
+  User.deleteOne({ username: req.params.username })
   .exec()
   .then(result => {
     res.status(200).json({
@@ -349,6 +357,7 @@ app.get('/heroes', (req, res) => {
 
   request(heroes, function (error, response, body) {
     if (error) throw new Error(error);
+    // console.log(body);
 
     res.render('deckRender', { title: "Heroes", array: JSON.parse(body) } );
   });
@@ -453,7 +462,21 @@ app.get('/:username/profile', verifyToken, (req,res) => {
   if (typeof messageOK !== 'undefined' && cookie['admin'] == undefined) {
     res.render('profile', { messageOK: messageOK, username: cookie['username'] });
   } if (cookie['admin'] !== undefined) {
-    res.render('adminPage', { username: cookie['username']})
+
+    var decksOwned = { method: 'GET',
+    url: `${URL_VAR}api/decksOwned/`,
+    headers:
+    {'Cache-Control': 'no-cache',
+    'Content-Type': 'application/x-www-form-urlencoded' } };
+
+    request(decksOwned, function (error, response, body) {
+      if (error) throw new Error(error);
+      // console.log(JSON.parse(body));
+
+      res.render('adminPage', { username: cookie['username'], array: JSON.parse(body) } );
+    });
+
+    // res.render('adminPage', { username: cookie['username']})
   }  else {
     res.render('profile', { username: cookie['username'] });
   }
