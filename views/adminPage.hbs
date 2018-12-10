@@ -18,3 +18,27 @@
     <a href='/addNewEnv' class="float-right"> Add new environment decks </a>
   </div>
 </div>
+
+<canvas id="heroChart" data-labels="" ></canvas>
+<script>
+var ctx = document.getElementById("heroChart").getContext('2d');
+var myChart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+    datasets: [{
+      label: '# users who own each hero deck',
+      data: [22, 19, 3, 5, 2, 3],
+    }]
+  },
+  options: {
+    scales: {
+      yAxes: [{
+        ticks: {
+          beginAtZero:true
+        }
+      }]
+    }
+  }
+});
+</script>

@@ -1,10 +1,11 @@
-# Project Title
+# Sentinels of the Multiverse Randomizer
 
 A tool to build a random collection of decks for the game Sentinels of the Multiverse. The entirety of the multiverse is a good bit to carry around, so I build this tool to make a selection of decks for me to pack up and take around to game nights, etc. I feel like this tool helps the modularity of the game shine by giving you the ability to create nigh endless scenarios and assortments of games.
 
 ## Getting Started
 
 - Download the files from the repository
+- Install dependencies using `npm install` inside of the project directory
 - Run the server with `node server.js` to start application
 
 ### Installing
@@ -13,27 +14,13 @@ A tool to build a random collection of decks for the game Sentinels of the Multi
 - Download the files from the repository
 - Install dependencies with `npm install`
 
-End with an example of getting some data out of the system or using it for a little demo
-
 ## Running the tests
 
-Explain how to run the automated tests for this system
+- Run `node test` from the root of the project directory
 
 ### Break down into end to end tests
 
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
+- The tests make sure all the api endpoints return data correctly for the frontend to handle and that users are handled correctly
 
 ## Deployment
 
