@@ -87,7 +87,7 @@ router.get('/hero', (req, res) => {
   Hero.find(function(err, heroes) {
     if (err)
     res.send(err);
-    res.json(heroes;
+    res.json(heroes);
   });
 });
 
