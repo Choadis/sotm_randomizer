@@ -103,7 +103,7 @@ function rngLoggedIn(array, number) {
 
 $(document).ready(function() {
 
-  var URL_VAR = 'http://localhost:3000/';
+  var URL_VAR = 'https://sotm-randomizer.herokuapp.com/';
 
   $("#submitNewUser").click(function(event) {
 

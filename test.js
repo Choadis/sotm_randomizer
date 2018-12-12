@@ -2,7 +2,7 @@
 // =============================================================================
 var request = require("request");
 
-var URL_VAR = 'http://localhost:3000/';
+var URL_VAR = 'https://sotm-randomizer.herokuapp.com/';
 
 var Hero     = require('./models/hero.js');
 var Villain     = require('./models/villain.js');
@@ -141,7 +141,7 @@ function testNewUser() {
 function testLogin() {
 
   var options = { method: 'POST',
-  url: 'http://localhost:3000/api/login',
+  url: 'https://sotm-randomizer.herokuapp.com/api/login',
   headers:
   {'cache-control': 'no-cache',
   'Content-Type': 'application/x-www-form-urlencoded' },
