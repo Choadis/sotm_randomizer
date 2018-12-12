@@ -15,6 +15,7 @@ var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
 
 app.use(express.static('public'));
+app.use(express.static('html2'))
 app.use(cookieParser())
 
 require('dotenv').config()
@@ -545,6 +546,10 @@ app.get('/randomizer', (req, res) => {
   res.render('randomizer')
 
 });
+
+// app.get('/docs', (req, res) => {
+//   res.send('index.html')
+// })
 
 // Middleware Functions go here
 // =============================================================================
